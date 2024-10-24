@@ -16,7 +16,6 @@ public class TaskCollectItems : Node
             return false;
         }
 
-        // Check if there's a current target or if the current target is invalid
         if (kim.currentTarget == null || !kim.pathfinding.IsPathValid())
         {
             GameObject nextItem = GetNextItem();
@@ -25,28 +24,26 @@ public class TaskCollectItems : Node
                 kim.SetPathToTarget(nextItem.transform.position);
                 kim.currentTarget = nextItem;
                 Debug.Log("Going For Target: " + nextItem.name);
-                return true; // Task is running
+                return true;
             }
             else
             {
-                return false; // No more items to collect
+                return false;
             }
         }
 
-        // Move towards the item and check if it's collected
         if (Vector3.Distance(kim.transform.position, kim.currentTarget.transform.position) < 1)
         {
             kim.CollectItem(kim.currentTarget);
-            kim.currentTarget = null; // Clear the current target
+            kim.currentTarget = null;
             return true;
         }
 
-        return true; // Continue executing until the target is reached
+        return true;
     }
 
     private GameObject GetNextItem()
     {
-        // Logic to get the closest item or the next target.
         if (kim.allItems.Count > 0)
         {
             return kim.GetClosestItem();

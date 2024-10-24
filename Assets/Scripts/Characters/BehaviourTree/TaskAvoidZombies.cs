@@ -1,40 +1,53 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class TaskAvoidZombies : Node
 {
     private Kim kim;
-    private List<GameObject> zombies;
+    private GameObject dangerMarkerPrefab;
+    private List<Grid.Tile> dangerTiles = new List<Grid.Tile>();
+    private List<GameObject> activeDangerMarkers = new List<GameObject>();
 
-    public TaskAvoidZombies(Kim kim)
+    public TaskAvoidZombies(Kim kim, GameObject dangerMarkerPrefab)
     {
         this.kim = kim;
+        this.dangerMarkerPrefab = dangerMarkerPrefab;
     }
 
     public override bool Execute()
     {
-        // Get all zombies on the map
-        zombies = new List<GameObject>(kim.GetContextByTag("Zombie"));
+        ResetDangerMarkers();
 
-        // If there are no zombies, return true (no need to avoid)
-        if (zombies.Count == 0)
-        {
-            return true;
-        }
+        var zombies = new List<GameObject>(kim.GetContextByTag("Zombie"));
 
-        // Mark the tiles around zombies as occupied
+        if (zombies.Count == 0) return true;
+
+        dangerTiles.Clear();
+
         foreach (GameObject zombie in zombies)
         {
             Grid.Tile zombieTile = Grid.Instance.GetClosest(zombie.transform.position);
+
             MarkDangerZone(zombieTile);
         }
 
-        return true; // Task completed
+        kim.UpdateDangerTiles(dangerTiles);
+
+        return true;
+    }
+
+    private void ResetDangerMarkers()
+    {
+        foreach (var marker in activeDangerMarkers)
+        {
+            GameObject.Destroy(marker);
+        }
+        activeDangerMarkers.Clear();
     }
 
     private void MarkDangerZone(Grid.Tile zombieTile)
     {
-        int dangerRadius = 2;  // 4x4 area means 2 tiles in each direction
+        int dangerRadius = 2;
 
         for (int x = -dangerRadius; x <= dangerRadius; x++)
         {
@@ -42,11 +55,18 @@ public class TaskAvoidZombies : Node
             {
                 Vector2Int tilePos = new Vector2Int(zombieTile.x + x, zombieTile.y + y);
                 Grid.Tile dangerTile = Grid.Instance.TryGetTile(tilePos);
+
                 if (dangerTile != null)
                 {
-                    dangerTile.occupied = true; // Mark tile as occupied
+                    dangerTiles.Add(dangerTile);
+
+                    Vector3 tileWorldPos = Grid.Instance.WorldPos(dangerTile);
+                    GameObject marker = GameObject.Instantiate(dangerMarkerPrefab, tileWorldPos, Quaternion.identity);
+                    activeDangerMarkers.Add(marker);
                 }
             }
         }
     }
+    
+    
 }

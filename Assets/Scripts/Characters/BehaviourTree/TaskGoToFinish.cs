@@ -12,10 +12,9 @@ public class TaskGoToFinish : Node
 
     public override bool Execute()
     {
-        // If the task has already been completed, don't run it again
         if (isTaskCompleted)
         {
-            return true;  // Task is considered successfully running/completed
+            return true;
         }
 
         // Get the finish tile from the grid

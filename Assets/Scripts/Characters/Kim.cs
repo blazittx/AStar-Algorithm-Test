@@ -3,24 +3,27 @@ using UnityEngine;
 
 public class Kim : CharacterController
 {
-    // === Serialized Fields ===
     [Header("Character Context Radius")]
     [SerializeField] private float contextRadius = 10f;
 
-    // === Public Fields ===
     [Header("References")]
     public Pathfinding pathfinding;
     public Animator animator;
-    [SerializeField] private GameObject pathMarkerPrefab;  // Assign a path marker prefab in the inspector
-    private List<GameObject> activePathMarkers = new List<GameObject>(); // Store active path markers
+    [SerializeField] private GameObject pathMarkerPrefab;
+    [SerializeField] private GameObject dangerMarkerPrefab;
+
+    private List<GameObject> activePathMarkers = new List<GameObject>();
 
     [Header("Item and Zombie Management")]
     public List<GameObject> allItems = new List<GameObject>();
-    public List<GameObject> allZombies = new List<GameObject>(); // Store detected zombies
     public GameObject currentTarget;
     public bool allItemsCollected = false;
+    
+    private List<Grid.Tile> dangerTiles = new List<Grid.Tile>();
 
-    // === Private Fields ===
+    // Store the previous path for comparison
+    private List<Grid.Tile> previousPath = new List<Grid.Tile>();
+
     private Node rootNode;
 
     public override void StartCharacter()
@@ -28,35 +31,32 @@ public class Kim : CharacterController
         base.StartCharacter();
         pathfinding = GetComponent<Pathfinding>();
 
-        // Get all the items in the scene tagged as "Burger"
         allItems = new List<GameObject>(GetContextByTag("Burger"));
-
-        // Get all zombies in the scene
-        allZombies = new List<GameObject>(GetContextByTag("Zombie"));
 
         BuildBehaviorTree();
     }
 
     private void BuildBehaviorTree()
     {
-        rootNode = new Selector(new List<Node>
+        rootNode = new Parallel(new List<Node>
         {
-            new TaskCollectItems(this),
-            new TaskAvoidZombies(this),   // New task for avoiding zombies
-            new TaskGoToFinish(this)      // This task executes when all items are collected
+            new TaskAvoidZombies(this, dangerMarkerPrefab),
+            new Selector(new List<Node>
+            {
+                new TaskCollectItems(this),
+                new TaskGoToFinish(this)
+            })
         });
     }
 
     private void VisualizePath()
     {
-        // Clear previous path markers
         foreach (var marker in activePathMarkers)
         {
             Destroy(marker);
         }
         activePathMarkers.Clear();
 
-        // Place new path markers along the current path
         foreach (Grid.Tile tile in pathfinding.path)
         {
             Vector3 markerPosition = Grid.Instance.WorldPos(tile);
@@ -69,13 +69,13 @@ public class Kim : CharacterController
     {
         base.UpdateCharacter();
 
-        // Execute the behavior tree logic
+        // Execute the behavior tree
         rootNode.Execute();
-        
-        // Dynamically update the path based on the current target (item or finish tile)
+
+        // Check if the path needs updating
         UpdateCurrentPath();
 
-        // Visualize the path
+        // Visualize the path on the grid
         VisualizePath();
     }
 
@@ -83,17 +83,33 @@ public class Kim : CharacterController
     {
         if (currentTarget != null)
         {
-            // If there is a current target (like an item), set the path to it
-            pathfinding.FindPathToTarget(currentTarget.transform.position);
+            pathfinding.FindPathToTarget(currentTarget.transform.position, dangerTiles);
+
+            // Compare the new path with the previous path
+            if (!PathsAreEqual(pathfinding.path, previousPath))
+            {
+                // If the path changed, update the walk buffer
+                SetWalkBuffer(pathfinding.path);
+                // Store the current path as the previous path for the next comparison
+                previousPath = new List<Grid.Tile>(pathfinding.path);
+            }
         }
         else if (allItemsCollected)
         {
-            // If all items are collected and no current target, set path to the finish tile
             Grid.Tile finishTile = Grid.Instance.GetFinishTile();
             if (finishTile != null)
             {
                 Vector3 finishPosition = Grid.Instance.WorldPos(finishTile);
-                pathfinding.FindPathToTarget(finishPosition); // Set path to finish tile
+                pathfinding.FindPathToTarget(finishPosition, dangerTiles);
+
+                // Compare the new path with the previous path
+                if (!PathsAreEqual(pathfinding.path, previousPath))
+                {
+                    // If the path changed, update the walk buffer
+                    SetWalkBuffer(pathfinding.path);
+                    // Store the current path as the previous path for the next comparison
+                    previousPath = new List<Grid.Tile>(pathfinding.path);
+                }
             }
             else
             {
@@ -106,13 +122,37 @@ public class Kim : CharacterController
         }
     }
 
+    // Helper method to compare paths
+    private bool PathsAreEqual(List<Grid.Tile> pathA, List<Grid.Tile> pathB)
+    {
+        if (pathA.Count != pathB.Count)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < pathA.Count; i++)
+        {
+            if (pathA[i] != pathB[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void UpdateDangerTiles(List<Grid.Tile> dangerTiles)
+    {
+        this.dangerTiles = new List<Grid.Tile>(dangerTiles);
+    }
+
     public void SetPathToTarget(Vector3 targetPosition)
     {
         Debug.Log("SetPathToTarget Called");
 
-        // Find the path to the target and set it in the walk buffer
-        pathfinding.FindPathToTarget(targetPosition);
-        SetWalkBuffer(pathfinding.path);  // Use the existing walk buffer in CharacterController
+        pathfinding.FindPathToTarget(targetPosition, dangerTiles);
+        SetWalkBuffer(pathfinding.path);
+        previousPath = new List<Grid.Tile>(pathfinding.path);  // Store the path as the previous path
     }
 
     public GameObject GetClosestItem()
@@ -136,16 +176,14 @@ public class Kim : CharacterController
 
     public void CollectItem(GameObject item)
     {
-        // Remove the collected item from the list
         allItems.Remove(item);
 
         if (allItems.Count == 0)
         {
-            allItemsCollected = true; // All items have been collected
+            allItemsCollected = true;
         }
         else
         {
-            // Set the path for the next closest item
             GameObject nextItem = GetClosestItem();
             if (nextItem != null)
             {
@@ -157,7 +195,6 @@ public class Kim : CharacterController
 
     public GameObject[] GetContextByTag(string tag)
     {
-        // Find all objects in range with the specified tag
         Collider[] context = Physics.OverlapSphere(transform.position, contextRadius);
         List<GameObject> result = new List<GameObject>();
 

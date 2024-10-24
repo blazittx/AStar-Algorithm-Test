@@ -11,7 +11,17 @@ public class Pathfinding : MonoBehaviour
         FindPath(seeker.position, targetPosition);
     }
 
+    public void FindPathToTarget(Vector3 targetPosition, List<Grid.Tile> dangerTiles)
+    {
+        FindPath(seeker.position, targetPosition, dangerTiles);
+    }
+
     public void FindPath(Vector3 startPos, Vector3 targetPos)
+    {
+        FindPath(startPos, targetPos, null);
+    }
+
+    public void FindPath(Vector3 startPos, Vector3 targetPos, List<Grid.Tile> dangerTiles)
     {
         Grid.Tile startTile = Grid.Instance.GetClosest(startPos);
         Grid.Tile targetTile = Grid.Instance.GetClosest(targetPos);
@@ -55,7 +65,8 @@ public class Pathfinding : MonoBehaviour
 
             foreach (Grid.Tile neighbor in GetNeighbours(currentTile))
             {
-                if (neighbor.occupied || closedSet.Contains(neighbor)) continue;
+                if (neighbor.occupied || closedSet.Contains(neighbor) || (dangerTiles != null && dangerTiles.Contains(neighbor)))
+                    continue;
 
                 int tentativeGScore = gScore[currentTile] + GetDistance(currentTile, neighbor);
                 if (!openSet.Contains(neighbor))
@@ -73,7 +84,6 @@ public class Pathfinding : MonoBehaviour
             }
         }
 
-        // If no valid path is found, clear the path list.
         path.Clear();
     }
 
@@ -122,7 +132,7 @@ public class Pathfinding : MonoBehaviour
 
         return neighbours;
     }
-    
+
     public bool IsPathValid()
     {
         return path != null && path.Count > 0;

@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6,
     type: 3}
-  m_Color: {r: 0.36144003, g: 0.74509805, b: 0.28627452, a: 1}
+  m_Color: {r: 0.7433963, g: 0.28473476, b: 0.28473476, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -95,7 +95,7 @@ GameObject:
   m_Component:
   - component: {fileID: 916498268303912835}
   m_Layer: 0
-  m_Name: PathVisualizer
+  m_Name: DangerVisualizer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

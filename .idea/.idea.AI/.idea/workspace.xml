@@ -7,9 +7,14 @@
     <list default="true" id="7ac904b2-8433-4b89-a0fe-83c75a2b9937" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.AI/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AI/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Pathfinding.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Pathfinding.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/Characters/Kim.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Characters/Kim.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/GamesManager.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/GamesManager.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/PathVisualizer.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/PathVisualizer.prefab" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Level1.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Level1.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskAvoidZombies.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskAvoidZombies.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskCollectItems.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskCollectItems.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskGoToFinish.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskGoToFinish.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/Kim.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/Kim.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/EditorSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/EditorSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,7 +25,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Assets/MovementController.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/d44b17e136d09081da1e8fd0e8c83fde60e11818b9f2442d7ed8cb733fae895e/System.Collections.Generic.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Pathfinding.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskCollectItems.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Characters/BehaviourTree/TaskGoToFinish.cs" root0="FORCE_HIGHLIGHTING" />
@@ -98,7 +103,7 @@
       <workItem from="1729500254633" duration="1748000" />
       <workItem from="1729505917321" duration="643000" />
       <workItem from="1729760917328" duration="199000" />
-      <workItem from="1729761126517" duration="9282000" />
+      <workItem from="1729761126517" duration="13944000" />
     </task>
     <servers />
   </component>
