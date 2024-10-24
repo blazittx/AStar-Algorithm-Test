@@ -2007,8 +2007,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seeker: {fileID: 601951314}
-  target: {fileID: 1309852004}
-  grid: {fileID: 772055580}
   path: []
 --- !u!1 &658337659
 GameObject:
@@ -10787,7 +10785,23 @@ PrefabInstance:
     - target: {fileID: 3846718407826640484, guid: e74821599e1428f4fb096b33ee329de8,
         type: 3}
       propertyPath: ContextRadius
-      value: 5
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3846718407826640484, guid: e74821599e1428f4fb096b33ee329de8,
+        type: 3}
+      propertyPath: contextRadius
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3846718407826640484, guid: e74821599e1428f4fb096b33ee329de8,
+        type: 3}
+      propertyPath: pathMarkerPrefab
+      value: 
+      objectReference: {fileID: 3416380202241688643, guid: e3bd45ad684f548429d3e9d2ef178102,
+        type: 3}
+    - target: {fileID: 3846718407826640484, guid: e74821599e1428f4fb096b33ee329de8,
+        type: 3}
+      propertyPath: behaviorUpdateInterval
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8486096355810131729, guid: e74821599e1428f4fb096b33ee329de8,
         type: 3}
@@ -16415,7 +16429,7 @@ PrefabInstance:
     - target: {fileID: 1415152709971952084, guid: cf10b3d86f04f434cbf29a2c3553fe97,
         type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7174180633612239551, guid: cf10b3d86f04f434cbf29a2c3553fe97,
         type: 3}
@@ -17628,7 +17642,7 @@ PrefabInstance:
     - target: {fileID: 1415152709971952084, guid: cf10b3d86f04f434cbf29a2c3553fe97,
         type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7174180633612239551, guid: cf10b3d86f04f434cbf29a2c3553fe97,
         type: 3}

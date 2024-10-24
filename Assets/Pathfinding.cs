@@ -1,22 +1,24 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
-public class Pathfinding : MonoBehaviour {
-
-    public Transform seeker, target;
-    public Grid grid;
+public class Pathfinding : MonoBehaviour
+{
+    public Transform seeker;
     public List<Grid.Tile> path = new List<Grid.Tile>();
 
-    void Update() {
-        FindPath(seeker.position, target.position);
+    public void FindPathToTarget(Vector3 targetPosition)
+    {
+        FindPath(seeker.position, targetPosition);
     }
 
-    void FindPath(Vector3 startPos, Vector3 targetPos) {
-        Grid.Tile startTile = grid.GetClosest(startPos);
-        Grid.Tile targetTile = grid.GetClosest(targetPos);
+    public void FindPath(Vector3 startPos, Vector3 targetPos)
+    {
+        Grid.Tile startTile = Grid.Instance.GetClosest(startPos);
+        Grid.Tile targetTile = Grid.Instance.GetClosest(targetPos);
 
-        if (startTile == null || targetTile == null) {
+        if (startTile == null || targetTile == null)
+        {
+            path.Clear();
             return;
         }
 
@@ -31,10 +33,13 @@ public class Pathfinding : MonoBehaviour {
         gScore[startTile] = 0;
         fScore[startTile] = GetDistance(startTile, targetTile);
 
-        while (openSet.Count > 0) {
+        while (openSet.Count > 0)
+        {
             Grid.Tile currentTile = openSet[0];
-            for (int i = 1; i < openSet.Count; i++) {
-                if (fScore[openSet[i]] < fScore[currentTile]) {
+            for (int i = 1; i < openSet.Count; i++)
+            {
+                if (fScore[openSet[i]] < fScore[currentTile])
+                {
                     currentTile = openSet[i];
                 }
             }
@@ -42,18 +47,23 @@ public class Pathfinding : MonoBehaviour {
             openSet.Remove(currentTile);
             closedSet.Add(currentTile);
 
-            if (currentTile == targetTile) {
+            if (currentTile == targetTile)
+            {
                 RetracePath(startTile, targetTile, cameFrom);
                 return;
             }
 
-            foreach (Grid.Tile neighbor in GetNeighbours(currentTile)) {
+            foreach (Grid.Tile neighbor in GetNeighbours(currentTile))
+            {
                 if (neighbor.occupied || closedSet.Contains(neighbor)) continue;
 
                 int tentativeGScore = gScore[currentTile] + GetDistance(currentTile, neighbor);
-                if (!openSet.Contains(neighbor)) {
+                if (!openSet.Contains(neighbor))
+                {
                     openSet.Add(neighbor);
-                } else if (tentativeGScore >= gScore[neighbor]) {
+                }
+                else if (tentativeGScore >= gScore[neighbor])
+                {
                     continue;
                 }
 
@@ -62,13 +72,18 @@ public class Pathfinding : MonoBehaviour {
                 fScore[neighbor] = gScore[neighbor] + GetDistance(neighbor, targetTile);
             }
         }
+
+        // If no valid path is found, clear the path list.
+        path.Clear();
     }
 
-    void RetracePath(Grid.Tile startTile, Grid.Tile endTile, Dictionary<Grid.Tile, Grid.Tile> cameFrom) {
+    void RetracePath(Grid.Tile startTile, Grid.Tile endTile, Dictionary<Grid.Tile, Grid.Tile> cameFrom)
+    {
         path.Clear();
         Grid.Tile currentTile = endTile;
 
-        while (currentTile != startTile) {
+        while (currentTile != startTile)
+        {
             path.Add(currentTile);
             currentTile = cameFrom[currentTile];
         }
@@ -76,7 +91,8 @@ public class Pathfinding : MonoBehaviour {
         path.Reverse();
     }
 
-    int GetDistance(Grid.Tile tileA, Grid.Tile tileB) {
+    int GetDistance(Grid.Tile tileA, Grid.Tile tileB)
+    {
         int dstX = Mathf.Abs(tileA.x - tileB.x);
         int dstY = Mathf.Abs(tileA.y - tileB.y);
 
@@ -85,21 +101,30 @@ public class Pathfinding : MonoBehaviour {
         return 14 * dstX + 10 * (dstY - dstX);
     }
 
-    List<Grid.Tile> GetNeighbours(Grid.Tile tile) {
+    List<Grid.Tile> GetNeighbours(Grid.Tile tile)
+    {
         List<Grid.Tile> neighbours = new List<Grid.Tile>();
 
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
                 if (x == 0 && y == 0) continue;
 
                 Vector2Int checkPos = new Vector2Int(tile.x + x, tile.y + y);
-                Grid.Tile neighbour = grid.TryGetTile(checkPos);
-                if (neighbour != null && !neighbour.occupied) {
+                Grid.Tile neighbour = Grid.Instance.TryGetTile(checkPos);
+                if (neighbour != null && !neighbour.occupied)
+                {
                     neighbours.Add(neighbour);
                 }
             }
         }
 
         return neighbours;
+    }
+    
+    public bool IsPathValid()
+    {
+        return path != null && path.Count > 0;
     }
 }

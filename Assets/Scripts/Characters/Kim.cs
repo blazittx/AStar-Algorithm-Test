@@ -1,108 +1,174 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Kim : CharacterController
 {
-    [SerializeField] float ContextRadius;
-    [SerializeField] float speed = 3f;
+    // === Serialized Fields ===
+    [Header("Character Context Radius")]
+    [SerializeField] private float contextRadius = 10f;
 
-    private Pathfinding pathfinding;
-    private int currentPathIndex = 0;
+    // === Public Fields ===
+    [Header("References")]
+    public Pathfinding pathfinding;
     public Animator animator;
+    [SerializeField] private GameObject pathMarkerPrefab;  // Assign a path marker prefab in the inspector
+    private List<GameObject> activePathMarkers = new List<GameObject>(); // Store active path markers
+
+    [Header("Item and Zombie Management")]
+    public List<GameObject> allItems = new List<GameObject>();
+    public List<GameObject> allZombies = new List<GameObject>(); // Store detected zombies
+    public GameObject currentTarget;
+    public bool allItemsCollected = false;
+
+    // === Private Fields ===
+    private Node rootNode;
 
     public override void StartCharacter()
     {
         base.StartCharacter();
-        pathfinding = FindObjectOfType<Pathfinding>(); // Find the Pathfinding component in the scene
+        pathfinding = GetComponent<Pathfinding>();
+
+        // Get all the items in the scene tagged as "Burger"
+        allItems = new List<GameObject>(GetContextByTag("Burger"));
+
+        // Get all zombies in the scene
+        allZombies = new List<GameObject>(GetContextByTag("Zombie"));
+
+        BuildBehaviorTree();
+    }
+
+    private void BuildBehaviorTree()
+    {
+        rootNode = new Selector(new List<Node>
+        {
+            new TaskCollectItems(this),
+            new TaskAvoidZombies(this),   // New task for avoiding zombies
+            new TaskGoToFinish(this)      // This task executes when all items are collected
+        });
+    }
+
+    private void VisualizePath()
+    {
+        // Clear previous path markers
+        foreach (var marker in activePathMarkers)
+        {
+            Destroy(marker);
+        }
+        activePathMarkers.Clear();
+
+        // Place new path markers along the current path
+        foreach (Grid.Tile tile in pathfinding.path)
+        {
+            Vector3 markerPosition = Grid.Instance.WorldPos(tile);
+            GameObject marker = Instantiate(pathMarkerPrefab, markerPosition, Quaternion.identity);
+            activePathMarkers.Add(marker);
+        }
     }
 
     public override void UpdateCharacter()
     {
         base.UpdateCharacter();
 
-        // Check if there is a path to follow
-        if (pathfinding.path != null && pathfinding.path.Count > 0)
+        // Execute the behavior tree logic
+        rootNode.Execute();
+        
+        // Dynamically update the path based on the current target (item or finish tile)
+        UpdateCurrentPath();
+
+        // Visualize the path
+        VisualizePath();
+    }
+
+    public void UpdateCurrentPath()
+    {
+        if (currentTarget != null)
         {
-            FollowPath();
+            // If there is a current target (like an item), set the path to it
+            pathfinding.FindPathToTarget(currentTarget.transform.position);
+        }
+        else if (allItemsCollected)
+        {
+            // If all items are collected and no current target, set path to the finish tile
+            Grid.Tile finishTile = Grid.Instance.GetFinishTile();
+            if (finishTile != null)
+            {
+                Vector3 finishPosition = Grid.Instance.WorldPos(finishTile);
+                pathfinding.FindPathToTarget(finishPosition); // Set path to finish tile
+            }
+            else
+            {
+                Debug.LogError("Finish tile not found!");
+            }
         }
         else
         {
-            animator.SetBool("Walk", false); // Stop walking if no path
+            Debug.Log("No valid target to update path.");
         }
-
-        Zombie closest = GetClosest(GetContextByTag("Zombie"))?.GetComponent<Zombie>();
     }
 
-    void FollowPath()
+    public void SetPathToTarget(Vector3 targetPosition)
     {
-        // Check if we are at the last point in the path
-        if (currentPathIndex < pathfinding.path.Count)
+        Debug.Log("SetPathToTarget Called");
+
+        // Find the path to the target and set it in the walk buffer
+        pathfinding.FindPathToTarget(targetPosition);
+        SetWalkBuffer(pathfinding.path);  // Use the existing walk buffer in CharacterController
+    }
+
+    public GameObject GetClosestItem()
+    {
+        float closestDistance = float.MaxValue;
+        GameObject closestItem = null;
+
+        // Find the closest item to Kim
+        foreach (GameObject item in allItems)
         {
-            Grid.Tile targetTile = pathfinding.path[currentPathIndex];
-            Vector3 targetPosition = Grid.Instance.WorldPos(targetTile);
-
-            // Calculate the direction to face
-            Vector3 direction = (targetPosition - transform.position).normalized;
-
-            // Move towards the target position
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
-
-            // Rotate Kim to face the direction she is moving
-            if (direction != Vector3.zero)
+            float distance = Vector3.Distance(transform.position, item.transform.position);
+            if (distance < closestDistance)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
+                closestDistance = distance;
+                closestItem = item;
             }
+        }
 
-            // Check if we have reached the target tile
-            if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
-            {
-                currentPathIndex++; // Move to the next tile in the path
-            }
+        return closestItem;
+    }
 
-            // Set the "Walk" bool to true while moving
-            animator.SetBool("Walk", true);
+    public void CollectItem(GameObject item)
+    {
+        // Remove the collected item from the list
+        allItems.Remove(item);
+
+        if (allItems.Count == 0)
+        {
+            allItemsCollected = true; // All items have been collected
         }
         else
         {
-            // No more tiles to follow, stop walking
-            animator.SetBool("Walk", false);
-        }
-    }
-
-    Vector3 GetEndPoint()
-    {
-        return Grid.Instance.WorldPos(Grid.Instance.GetFinishTile());
-    }
-
-    GameObject[] GetContextByTag(string aTag)
-    {
-        Collider[] context = Physics.OverlapSphere(transform.position, ContextRadius);
-        List<GameObject> returnContext = new List<GameObject>();
-        foreach (Collider c in context)
-        {
-            if (c.transform.CompareTag(aTag))
+            // Set the path for the next closest item
+            GameObject nextItem = GetClosestItem();
+            if (nextItem != null)
             {
-                returnContext.Add(c.gameObject);
+                SetPathToTarget(nextItem.transform.position);
+                currentTarget = nextItem;
             }
         }
-        return returnContext.ToArray();
     }
 
-    GameObject GetClosest(GameObject[] aContext)
+    public GameObject[] GetContextByTag(string tag)
     {
-        float dist = float.MaxValue;
-        GameObject Closest = null;
-        foreach (GameObject z in aContext)
+        // Find all objects in range with the specified tag
+        Collider[] context = Physics.OverlapSphere(transform.position, contextRadius);
+        List<GameObject> result = new List<GameObject>();
+
+        foreach (Collider collider in context)
         {
-            float curDist = Vector3.Distance(transform.position, z.transform.position);
-            if (curDist < dist)
+            if (collider.CompareTag(tag))
             {
-                dist = curDist;
-                Closest = z;
+                result.Add(collider.gameObject);
             }
         }
-        return Closest;
+
+        return result.ToArray();
     }
 }
