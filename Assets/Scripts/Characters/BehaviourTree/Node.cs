@@ -21,9 +21,9 @@ public class Selector : Node
         {
             if (node.Execute())
             {
-                return true; // If any node succeeds, return true.
+                return true;
             }
         }
-        return false; // All nodes failed.
+        return false;
     }
 }

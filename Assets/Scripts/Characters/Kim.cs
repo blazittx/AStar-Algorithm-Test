@@ -19,9 +19,8 @@ public class Kim : CharacterController
     public GameObject currentTarget;
     public bool allItemsCollected = false;
     
-    private List<Grid.Tile> dangerTiles = new List<Grid.Tile>();
+    public List<Grid.Tile> dangerTiles = new List<Grid.Tile>();
 
-    // Store the previous path for comparison
     private List<Grid.Tile> previousPath = new List<Grid.Tile>();
 
     private Node rootNode;
@@ -69,13 +68,10 @@ public class Kim : CharacterController
     {
         base.UpdateCharacter();
 
-        // Execute the behavior tree
         rootNode.Execute();
 
-        // Check if the path needs updating
         UpdateCurrentPath();
 
-        // Visualize the path on the grid
         VisualizePath();
     }
 
@@ -83,14 +79,21 @@ public class Kim : CharacterController
     {
         if (currentTarget != null)
         {
+            Grid.Tile targetTile = Grid.Instance.GetClosest(currentTarget.transform.position);
+            bool isTargetInDanger = dangerTiles.Contains(targetTile);
+
+            if (isTargetInDanger)
+            {
+                Debug.Log("A zombie overlaps the item! Kim will stop");
+                SetWalkBuffer(new List<Grid.Tile>());
+                return;
+            }
+
             pathfinding.FindPathToTarget(currentTarget.transform.position, dangerTiles);
 
-            // Compare the new path with the previous path
             if (!PathsAreEqual(pathfinding.path, previousPath))
             {
-                // If the path changed, update the walk buffer
                 SetWalkBuffer(pathfinding.path);
-                // Store the current path as the previous path for the next comparison
                 previousPath = new List<Grid.Tile>(pathfinding.path);
             }
         }
@@ -102,12 +105,9 @@ public class Kim : CharacterController
                 Vector3 finishPosition = Grid.Instance.WorldPos(finishTile);
                 pathfinding.FindPathToTarget(finishPosition, dangerTiles);
 
-                // Compare the new path with the previous path
                 if (!PathsAreEqual(pathfinding.path, previousPath))
                 {
-                    // If the path changed, update the walk buffer
                     SetWalkBuffer(pathfinding.path);
-                    // Store the current path as the previous path for the next comparison
                     previousPath = new List<Grid.Tile>(pathfinding.path);
                 }
             }
@@ -122,7 +122,7 @@ public class Kim : CharacterController
         }
     }
 
-    // Helper method to compare paths
+
     private bool PathsAreEqual(List<Grid.Tile> pathA, List<Grid.Tile> pathB)
     {
         if (pathA.Count != pathB.Count)
@@ -152,7 +152,7 @@ public class Kim : CharacterController
 
         pathfinding.FindPathToTarget(targetPosition, dangerTiles);
         SetWalkBuffer(pathfinding.path);
-        previousPath = new List<Grid.Tile>(pathfinding.path);  // Store the path as the previous path
+        previousPath = new List<Grid.Tile>(pathfinding.path);
     }
 
     public GameObject GetClosestItem()
@@ -160,7 +160,6 @@ public class Kim : CharacterController
         float closestDistance = float.MaxValue;
         GameObject closestItem = null;
 
-        // Find the closest item to Kim
         foreach (GameObject item in allItems)
         {
             float distance = Vector3.Distance(transform.position, item.transform.position);
