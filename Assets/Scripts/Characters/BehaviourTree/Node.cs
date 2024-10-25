@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 public abstract class Node
 {
@@ -25,5 +24,30 @@ public class Selector : Node
             }
         }
         return false;
+    }
+}
+
+public class Parallel : Node
+{
+    private List<Node> nodes;
+
+    public Parallel(List<Node> nodes)
+    {
+        this.nodes = nodes;
+    }
+
+    public override bool Execute()
+    {
+        bool allSucceeded = true;
+
+        foreach (var node in nodes)
+        {
+            if (!node.Execute())
+            {
+                allSucceeded = false;
+            }
+        }
+
+        return allSucceeded;
     }
 }

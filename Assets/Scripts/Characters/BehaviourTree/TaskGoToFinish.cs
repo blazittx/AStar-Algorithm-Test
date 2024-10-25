@@ -3,7 +3,7 @@ using UnityEngine;
 public class TaskGoToFinish : Node
 {
     private Kim kim;
-    private bool isTaskCompleted = false;  // Flag to ensure the task runs only once
+    private bool isTaskCompleted = false;
 
     public TaskGoToFinish(Kim kim)
     {
@@ -17,23 +17,21 @@ public class TaskGoToFinish : Node
             return true;
         }
 
-        // Get the finish tile from the grid
         Grid.Tile finishTile = Grid.Instance.GetFinishTile();
         if (finishTile != null)
         {
-            Vector3 finishPosition = Grid.Instance.WorldPos(finishTile); // Get world position of the finish tile
-            kim.SetPathToTarget(finishPosition); // Set Kim's path to the finish tile
+            Vector3 finishPosition = Grid.Instance.WorldPos(finishTile);
+            kim.SetPathToTarget(finishPosition);
 
-            Debug.Log("Setting path to finish tile.");
+            Debug.Log("Setting path to finish tile at: " + finishPosition.ToString());
 
-            // Mark the task as completed
             isTaskCompleted = true;
-            return true;  // Task is successfully running/completed
+            return true;
         }
         else
         {
             Debug.LogError("No finish tile found!");
-            return false;  // Task failed because no finish tile was found
+            return false;
         }
     }
 }
